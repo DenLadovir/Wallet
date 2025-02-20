@@ -44,6 +44,8 @@ curl -X POST http://localhost:8080/api/v1/wallets/323e4567-e89b-12d3-a456-426614
 
 There were difficulties when trying to implement the tests, and this issue is in progress.
 
+The project is deployed in a container on Docker.
+
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 Проект "Кошелёк" пишется в соответствии с техническим заданием:
@@ -91,3 +93,5 @@ curl -X POST http://localhost:8080/api/v1/wallets/323e4567-e89b-12d3-a456-426614
 curl -X POST http://localhost:8080/api/v1/wallets/323e4567-e89b-12d3-a456-426614174002/withdraw -H "Content-Type: application/json" -d "{\"amount\": 10.00}" - выполнение операции снятия
 
 При попытке реализовать тесты возникли трудности, данный вопрос в процессе.
+
+Проект развёрнут в контейнере на Docker.
