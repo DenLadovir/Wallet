@@ -10,16 +10,26 @@ import (
 	"net/http"
 )
 
+// DepositHandler handles deposit requests
 func DepositHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	walletID := vars["WALLET_UUID"]
 	log.Printf("Deposit request received for wallet ID: %s", walletID)
+	if walletID == "" {
+		log.Printf("Invalid wallet ID")
+		http.Error(w, "Invalid wallet ID", http.StatusBadRequest)
+		return
+	}
 
 	var req model.WalletRequest
 	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil || req.Amount <= 0 {
 		log.Printf("Invalid request body: %v", err)
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	} else if req.Amount > 1000000 {
+		log.Printf("Amount exceeds maximum limit: %.2f", req.Amount)
+		http.Error(w, "Amount exceeds maximum limit", http.StatusBadRequest)
 		return
 	}
 	log.Printf("Deposit amount: %.2f", req.Amount)
@@ -68,10 +78,16 @@ func DepositHandler(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+// WithdrawHandler handles withdraw requests
 func WithdrawHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	walletID := vars["WALLET_UUID"]
 	log.Printf("Withdraw request received for wallet ID: %s", walletID)
+	if walletID == "" {
+		log.Printf("Invalid wallet ID")
+		http.Error(w, "Invalid wallet ID", http.StatusBadRequest)
+		return
+	}
 
 	var req model.WalletRequest
 	err := json.NewDecoder(r.Body).Decode(&req)
@@ -132,6 +148,7 @@ func WithdrawHandler(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+// GetWalletBalance handles balance requests
 func GetWalletBalance(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	walletID := vars["WALLET_UUID"]
@@ -163,6 +180,7 @@ func GetWalletBalance(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+// GetAllWalletsHandler fetches all wallets
 func GetAllWalletsHandler(w http.ResponseWriter, r *http.Request) {
 	log.Println("Request received to fetch all wallets")
 

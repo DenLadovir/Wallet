@@ -1,5 +1,19 @@
 services:
-  db:
+  wallet_app:
+    build:
+      context: .
+    container_name: wallet_app
+    ports:
+      - "8080:8080"
+    depends_on:
+      wallet_db:
+        condition: service_healthy
+    env_file:
+      - config.env
+    command: ["sh", "-c", "sleep 20 && ./main"]
+    restart: on-failure
+
+  wallet_db:
     image: postgres:15
     container_name: wallet_db
     environment:
@@ -10,34 +24,23 @@ services:
       - "5432:5432"
     volumes:
       - ./DBinit.sql:/docker-entrypoint-initdb.d/init.sql
-
-  app:
-    build:
-      context: .
-    container_name: wallet_app
-    ports:
-      - "8080:8080"
-    depends_on:
-      - db
-    environment:
-      - DB_HOST=${DB_HOST}
-      - DB_PORT=${DB_PORT}
-      - DB_USER=${DB_USER}
-      - DB_PASSWORD=${DB_PASSWORD}
-      - DB_NAME=${DB_NAME}
-      - DB_SSLMODE=${DB_SSLMODE}
+      - ./create_test_db.sql:/docker-entrypoint-initdb.d/create_test_db.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB} -h localhost || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    restart: on-failure
 
   tests:
     build:
       context: .
     container_name: wallet_tests
     depends_on:
-      - db
-    environment:
-      - DB_HOST=${DB_HOST}
-      - DB_PORT=${DB_PORT}
-      - DB_USER=${DB_USER}
-      - DB_PASSWORD=${DB_PASSWORD}
-      - DB_NAME=${DB_NAME}
-      - DB_SSLMODE=${DB_SSLMODE}
-    command: ["go", "test", "./..."]
+      wallet_db:
+        condition: service_healthy
+    env_file:
+      - config.env
+    command: ["sh", "-c", "sleep 5 && go test ./..."]
+    volumes:
+      - .:/app
