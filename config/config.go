@@ -1,28 +1,24 @@
 package config
 
 import (
-	"os"
+	"github.com/kelseyhightower/envconfig"
 )
 
 type Config struct {
-	DBHost     string
-	DBPort     string
-	DBUser     string
-	DBPassword string
-	DBName     string
-	DBSSLMode  string
-	AppPort    string
+	DBHost     string `envconfig:"POSTGRES_DB_HOST"`
+	DBPort     string `envconfig:"POSTGRES_DB_PORT"`
+	DBUser     string `envconfig:"POSTGRES_USER"`
+	DBPassword string `envconfig:"POSTGRES_PASSWORD"`
+	DBName     string `envconfig:"POSTGRES_DB"`
+	DBSSLMode  string `envconfig:"POSTGRES_DB_SSLMODE"`
+	AppPort    string `envconfig:"APP_PORT"`
 }
 
-func LoadConfig() *Config {
-	// Читаем переменные окружения
-	return &Config{
-		DBHost:     os.Getenv("POSTGRES_DB_HOST"),
-		DBPort:     os.Getenv("POSTGRES_DB_PORT"),
-		DBUser:     os.Getenv("POSTGRES_USER"),
-		DBPassword: os.Getenv("POSTGRES_PASSWORD"),
-		DBName:     os.Getenv("POSTGRES_DB"),
-		DBSSLMode:  os.Getenv("POSTGRES_DB_SSLMODE"),
-		AppPort:    os.Getenv("APP_PORT"),
+func LoadConfig() (*Config, error) {
+	var cfg Config
+	err := envconfig.Process("", &cfg)
+	if err != nil {
+		return nil, err
 	}
+	return &cfg, nil
 }

@@ -3,16 +3,19 @@ package main
 import (
 	"Wallet/config"
 	"Wallet/database"
-	"Wallet/handlers"
+	"Wallet/routes"
 	"fmt"
 	"github.com/gorilla/mux"
-	"log"
+	log "github.com/sirupsen/logrus"
 	"net/http"
 )
 
 func main() {
 	// Загружаем переменные окружения из config.env
-	cfg := config.LoadConfig()
+	cfg, err := config.LoadConfig()
+	if err != nil {
+		log.Printf("Ошибка при загрузке конфигурации: %v", err)
+	}
 
 	// Инициализируем базу данных
 	database.InitDB(cfg.DBHost, cfg.DBPort, cfg.DBUser, cfg.DBPassword, cfg.DBName)
@@ -20,11 +23,8 @@ func main() {
 	// Создаём маршрутизатор
 	r := mux.NewRouter()
 
-	// Регистрируем обработчики
-	r.HandleFunc("/api/v1/wallets/{WALLET_UUID}/deposit", handlers.DepositHandler).Methods("POST")
-	r.HandleFunc("/api/v1/wallets/{WALLET_UUID}/withdraw", handlers.WithdrawHandler).Methods("POST")
-	r.HandleFunc("/api/v1/wallets/{WALLET_UUID}", handlers.GetWalletBalance).Methods("GET")
-	r.HandleFunc("/api/v1/wallets", handlers.GetAllWalletsHandler).Methods("GET")
+	// Регистрируем маршруты
+	routes.SetupWalletRoutes(r)
 
 	// Запускаем сервер
 	fmt.Printf("Server is running. Port - %s...\n", cfg.AppPort)
